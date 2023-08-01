@@ -1,13 +1,39 @@
-import { Fragment, useState } from "react"
+import { Fragment, useState, useEffect, useRef } from "react";
 import Modal from "../UI/Modal"
 import CartItem from "./CartItem"
 import OrderSuccessModal from "../UI/OrderSuccess"
 import { useDispatch, useSelector } from "react-redux"
 import { addItemHandler, placeOrderHandler, removeItemHandler } from "../../actions"
 
+
 const Cart = () => {
   const [showModal, setShowModal] = useState(false);
   const [orderModal, setOrderModal] = useState(false);
+
+  const cartRef = useRef();
+
+  useEffect(() => {
+    // Event listener to detect clicks outside the cart component
+    const handleClickOutsideCart = (event) => {
+      if (cartRef.current && !cartRef.current.contains(event.target)) {
+        // Click occurred outside the cart, close the modal
+        setShowModal(false);
+      }
+    };
+
+    // Add the event listener to the entire document
+    document.addEventListener("click", handleClickOutsideCart);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      document.removeEventListener("click", handleClickOutsideCart);
+    };
+  }, []);
+
+
+
+
+
   const items = useSelector(state => state.cart.items);
   const totalAmount = useSelector(state => state.cart.totalAmount);
   const [orderId, setOrderId] = useState('');
@@ -47,7 +73,9 @@ const Cart = () => {
 
   return (
     <Fragment>
-      <div className="cart-container">
+     
+     
+      <div  ref={cartRef} className="cart-container">
         <button onClick={handleModal}>
           <span data-items={items.length}>Cart</span>
           <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-shopping-cart-plus" width="20" height="20" viewBox="0 0 24 24" strokeWidth="1.5" stroke="white" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -99,8 +127,11 @@ const Cart = () => {
         </Modal>
       }
       {orderModal && <OrderSuccessModal orderId={orderId} onClose={handleOrderModal} />}
+      
     </Fragment>
   )
+
+  
 }
 
 export default Cart
